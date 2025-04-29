@@ -6,10 +6,14 @@ const {
   findUserByUsername,
   updateUserTwoFactor,
   findUserById,
+  updateUserResetToken,
 } = require("../models/user.model");
 const { comparePassword } = require("../utils/encryption");
 const { generateToken } = require("../utils/jwt");
 const { saveAuditLog } = require("./auditLog.service");
+const { generateOTP, generateTokenExpiry } = require("../utils/generateOTP");
+const { sendMail } = require("../utils/mailer");
+const crypto = require("crypto");
 
 // login
 const login = async (username, password) => {
@@ -99,6 +103,22 @@ const forgotPassword = async (username) => {
   if (!user) {
     throw new Error("User not found");
   }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  const tokenExpiry = generateTokenExpiry();
+
+  await updateUserResetToken(user.id, token, tokenExpiry);
+
+  const resetLink = `https://www.neemohlabs.com.np/reset-password?token=${token}`;
+
+  await sendMail({
+    to: user.email,
+    subject: "Reset Password Link",
+    html: `
+    <p>Click on the link below to reset your password:</p>
+    <p><a href="${resetLink}">${resetLink}</a></p>
+  `,
+  });
 };
 
 module.exports = {

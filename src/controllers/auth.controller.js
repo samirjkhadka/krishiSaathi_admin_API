@@ -169,14 +169,14 @@ const forgotPasswordHandler = async (req, res) => {
   try {
     const { username } = req.body;
     await forgotPassword(username);
-    successResponse(res, {
+    return successResponse(res, {
       status: true,
       message: "Forgot Password Success",
       data: {},
       statusCode: 200,
     });
   } catch (error) {
-    errorResponse(res, {
+   return errorResponse(res, {
       status: false,
       message: "Forgot Password Failed: " + error.message,
       data: {},
