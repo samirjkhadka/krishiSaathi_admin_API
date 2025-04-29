@@ -34,8 +34,6 @@ const loginUser = async (req, res) => {
 
     const { token, user } = await login(username, password);
 
-    console.log(token, user);
-
 
     if (!user) {
       return failResponse(res, {

@@ -25,7 +25,7 @@ const login = async (username, password) => {
 
   //if 2FA enabled, generate 2FA secret
   const token = generateToken({ id: user.id, username: user.username });
-  console.log("user.id value and type: ", user.id, typeof user.id);
+
   await saveAuditLog({
     userId: user.id,
     action: "LOGIN_SUCCESS",
@@ -33,6 +33,20 @@ const login = async (username, password) => {
     ipAddress: "127.0.0.1",
     platform: "web",
   });
+
+  const shouldSetup2FA = !user.is_2fa_enabled && !user.two_fa_secret === true;
+
+  if (shouldSetup2FA) {
+    return {
+      token: null,
+      user: {
+        id: user.id,
+        username: user.username,
+        requires_2fa_setup: true,
+      },
+    };
+  }
+
   return { token, user };
 };
 
@@ -44,15 +58,15 @@ const generate2FASecret = async (userId) => {
     issuer: "Krishi Saathi",
   });
 
-const otpauthUrl = secret.otpauth_url;
+  const otpauthUrl = secret.otpauth_url;
 
-const qrImageUrl = await qrcode.toDataURL(otpauthUrl);
+  const qrImageUrl = await qrcode.toDataURL(otpauthUrl);
 
   await updateUserTwoFactor(userId, true, secret.base32);
   return {
     otpauthUrl,
     base: secret.base32,
-    qrImageUrl
+    qrImageUrl,
   };
 };
 
@@ -61,7 +75,7 @@ const verify2FAToken = async (userId, token) => {
   const user = await findUserById(userId);
 
   if (!user || !user.two_fa_secret) {
-    throw new Error("User not found");
+    throw new Error("2FA not setup");
   }
 
   const verified = speakeasy.totp.verify({
@@ -70,7 +84,13 @@ const verify2FAToken = async (userId, token) => {
     token,
     window: 1,
   });
-  return verified;
+
+  if (!verified) {
+    throw new Error("Invalid 2FA Token");
+  }
+
+  await updateUserTwoFactor(user.id, true);
+  return true;
 };
 
 //Forgot password
