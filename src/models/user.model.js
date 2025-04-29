@@ -6,7 +6,7 @@ const getAllUsers = async () => {
 };
 
 const findUserById = async (id) => {
-  const response = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+  const response = await pool.query("SELECT * FROM admin_users WHERE id = $1", [id]);
   return response.rows[0];
 };
 
@@ -31,15 +31,22 @@ const createUser = async (user) => {
 };
 
 const findUserByUsername = async (username) => {
-  const response = await pool.query("SELECT * FROM users WHERE username = $1", [
-    username,
+
+  const response = await pool.query(`SELECT * FROM admin_users WHERE username = $1`, [
+    username
   ]);
+
+  if(response.rows.length === 0){
+   console.warn('No User found for : ', username)
+   return null;
+  }
+ 
   return response.rows[0];
 };
 
 const updateUserTwoFactor = async (id, twoFactorEnabled, twoFactorSecret) => {
   const response = await pool.query(
-    "UPDATE users SET two_factor_enabled = $1, two_factor_secret = $2 WHERE id = $3 RETURNING *",
+    "UPDATE admin_users SET is_2fa_enabled = $1, two_fa_secret = $2 WHERE id = $3 RETURNING *",
     [twoFactorEnabled, twoFactorSecret, id]
   );
   return response.rows[0];
