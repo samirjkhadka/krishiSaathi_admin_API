@@ -52,17 +52,32 @@ const createAdminUserRequest = async (req, res) => {
 
 const getPendingAdminUserRequests = async (req, res) => {
   try {
-    const result = await getPendingAdminUsers();
+
+
+    const {search = "", page =1 , limit = 10} = req.query;
+    const offset = (page - 1) * limit;
+
+    
+
+
+    const result = await getPendingAdminUsers({
+      search,
+      offset:parseInt(offset),
+      limit:parseInt(limit)
+    });
     return successResponse(res, {
       status: true,
-      message: "Admin User Request Found Successfully",
+      message: "Pending Admin User Requests Found Successfully",
       data: result,
+      total: result.total,
+      page:parseInt(page),
+      limit:parseInt(limit),
       statusCode: 200,
     });
   } catch (error) {
     return errorResponse(res, {
       status: false,
-      message: "Admin User Request Not Found: " + error.message,
+      message: "Pending Admin User Request Not Found: " + error.message,
       data: {},
       statusCode: 401,
     });

@@ -12,8 +12,12 @@ const createPendingAdminUser = async (payload) => {
   return await insert(data);
 };
 
-const getPendingAdminUsers = async () => {
-  return await findAllPending();
+const getPendingAdminUsers = async ({search, limit, offset}) => {
+  return await findAllPending(
+    search,
+    limit,
+    offset
+  );
 };
 
 module.exports = {
