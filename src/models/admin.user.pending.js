@@ -28,13 +28,14 @@ const findAllPending = async ({ page, limit, search }) => {
 
   if (search) {
     query = `
-      SELECT *
-      FROM admin_users_pending
+      SELECT p.*, u.name AS created_by_name
+      FROM admin_users_pending p
+      LEFT JOIN admin_users u ON p.created_by = u.id
       WHERE 
-        LOWER(name) LIKE $1 OR
-        LOWER(email) LIKE $1 OR
-        phone LIKE $1
-      ORDER BY created_at DESC
+        LOWER(p.name) LIKE $1 OR
+        LOWER(p.email) LIKE $1 OR
+        p.phone LIKE $1
+      ORDER BY p.created_at DESC
       LIMIT $2 OFFSET $3
     `;
     values = [`%${search.toLowerCase()}%`, limit, offset];
@@ -50,9 +51,10 @@ const findAllPending = async ({ page, limit, search }) => {
     countValues = [`%${search.toLowerCase()}%`];
   } else {
     query = `
-      SELECT *
-      FROM admin_users_pending
-      ORDER BY created_at DESC
+      SELECT p.*, u.name AS created_by_name
+      FROM admin_users_pending p
+      LEFT JOIN admin_users u ON p.created_by = u.id
+      ORDER BY p.created_at DESC
       LIMIT $1 OFFSET $2
     `;
     values = [limit, offset];
@@ -77,7 +79,11 @@ const findAllPending = async ({ page, limit, search }) => {
     limit,
     totalCount,
     totalPages,
-    users: result.rows,
+    users: result.rows.map((user) => ({
+      ...user,
+      created_by_name: user.created_by_name || null,
+      created_at: user.created_at,
+    })),
   };
 };
 
