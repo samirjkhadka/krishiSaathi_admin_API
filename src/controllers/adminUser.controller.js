@@ -50,38 +50,38 @@ const createAdminUserRequest = async (req, res) => {
   }
 };
 
-const getPendingAdminUserRequests = async (req, res) => {
+const getAllPendingAdminUsers = async (req, res ) => {
+
   try {
 
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const search = req.query.search || "";
 
-    const {search = "", page =1 , limit = 10} = req.query;
-    const offset = (page - 1) * limit;
-
-    
-
-
+    console.log(page, limit, search);
     const result = await getPendingAdminUsers({
-      search,
-      offset:parseInt(offset),
-      limit:parseInt(limit)
+      page, limit, search
     });
+
     return successResponse(res, {
       status: true,
-      message: "Pending Admin User Requests Found Successfully",
-      data: result,
-      total: result.total,
-      page:parseInt(page),
-      limit:parseInt(limit),
+      message: "Pending admin users fetched successfully",
+      data: {
+        users: result.users,
+        totalCount: result.totalCount,
+        page: parseInt(page),
+        limit: parseInt(limit),
+      },
       statusCode: 200,
     });
   } catch (error) {
     return errorResponse(res, {
       status: false,
-      message: "Pending Admin User Request Not Found: " + error.message,
+      message: "Error fetching pending admin users: " + error.message,
       data: {},
-      statusCode: 401,
+      statusCode: 500,
     });
   }
 };
 
-module.exports = { createAdminUserRequest, getPendingAdminUserRequests };
+module.exports = { createAdminUserRequest, getAllPendingAdminUsers };

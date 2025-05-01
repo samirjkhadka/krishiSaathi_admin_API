@@ -22,35 +22,63 @@ const insert = async (data) => {
   return response.rows[0];
 };
 
-const findAllPending = async ({ search, limit, offset }) => {
-  const searchQuery = `%${(search || "").toString().toLowerCase()}%`;
+const findAllPending = async ({ page, limit, search }) => {
+  const offset = (page - 1) * limit;
+  let query, countQuery, values, countValues;
 
-  const query = `SELECT aup.*, au.name AS created_by_name
-    FROM admin_users_pending aup
-    LEFT JOIN admin_users au ON aup.created_by = au.id
-    WHERE aup.action = 'create'
-    AND (
-      LOWER(aup.name) LIKE $1 OR 
-      LOWER(aup.email) LIKE $1 OR 
-      LOWER(aup.phone) LIKE $1
-    )
-    ORDER BY aup.created_at DESC
-    LIMIT $2 OFFSET $3;`;
+  if (search) {
+    query = `
+      SELECT *
+      FROM admin_users_pending
+      WHERE 
+        LOWER(name) LIKE $1 OR
+        LOWER(email) LIKE $1 OR
+        phone LIKE $1
+      ORDER BY created_at DESC
+      LIMIT $2 OFFSET $3
+    `;
+    values = [`%${search.toLowerCase()}%`, limit, offset];
 
-  const countQuery = ` SELECT COUNT(*) AS total
-    FROM admin_users_pending aup
-    WHERE aup.action = 'create'
-    AND (
-      LOWER(aup.name) LIKE $1 OR 
-      LOWER(aup.email) LIKE $1 OR 
-      LOWER(aup.phone) LIKE $1
-    );
-`;
+    countQuery = `
+      SELECT COUNT(*) AS total
+      FROM admin_users_pending
+      WHERE 
+        LOWER(name) LIKE $1 OR
+        LOWER(email) LIKE $1 OR
+        phone LIKE $1
+    `;
+    countValues = [`%${search.toLowerCase()}%`];
+  } else {
+    query = `
+      SELECT *
+      FROM admin_users_pending
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+    `;
+    values = [limit, offset];
 
-  const data = await db.query(query, [searchQuery, limit, offset]);
-  const count = await db.query(countQuery, [searchQuery]);
+    countQuery = `
+      SELECT COUNT(*) AS total
+      FROM admin_users_pending
+    `;
+    countValues = [];
+  }
 
-  return { data: data.rows, total: parseInt(count.rows[0].total) };
+  const [result, countResult] = await Promise.all([
+    db.query(query, values),
+    db.query(countQuery, countValues),
+  ]);
+
+  const totalCount = parseInt(countResult.rows[0].total, 10);
+  const totalPages = Math.ceil(totalCount / limit);
+
+  return {
+    page,
+    limit,
+    totalCount,
+    totalPages,
+    users: result.rows,
+  };
 };
 
 module.exports = { insert, findAllPending };
