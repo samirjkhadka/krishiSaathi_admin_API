@@ -4,6 +4,7 @@ const {
   findAllPending,
   approvePendingUser,
   rejectPendingUser,
+  updateRejectedPendingUser,
 } = require("../models/admin.user.pending");
 const logAction = require("../utils/maker_checker_logger");
 
@@ -41,9 +42,18 @@ const rejectPendingAdminUser = async (id, rejecterId, remarks) => {
   return result;
 };
 
+const editAndResubmitPendingUser = async (id, updatedData) => {
+  const updatedUser = await updateRejectedPendingUser(id, updatedData);
+  if (!updatedUser) {
+    throw new Error("Update Failed or user is not rejected");
+  }
+  return updatedUser;
+};
+
 module.exports = {
   createPendingAdminUser,
   getPendingAdminUsers,
   approvePendingAdminUser,
   rejectPendingAdminUser,
+  editAndResubmitPendingUser
 };

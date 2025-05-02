@@ -3,6 +3,7 @@ const {
   getPendingAdminUsers,
   approvePendingAdminUser,
   rejectPendingAdminUser,
+  editAndResubmitPendingUser,
 } = require("../services/admin.user.service");
 const {
   errorResponse,
@@ -127,9 +128,31 @@ const rejectAdminUser = async (req, res) => {
   }
 };
 
+const handleEditResubmitPendingUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const updatedUser = await editAndResubmitPendingUser(id, req.body);
+    return successResponse(res, {
+      status: true,
+      message: "Update Success",
+      data: updatedUser,
+      statusCode: 200,
+    });
+  } catch (error) {
+    return errorResponse(res, {
+      status: false,
+      message: "Update Failed: " + error.message,
+      data: {},
+      statusCode: 500,
+    });
+  }
+};
+
 module.exports = {
   createAdminUserRequest,
   getAllPendingAdminUsers,
   approveAdminUser,
   rejectAdminUser,
+  handleEditResubmitPendingUser,
 };

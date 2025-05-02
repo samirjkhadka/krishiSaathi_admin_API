@@ -170,13 +170,11 @@ const rejectPendingUser = async (id, rejecterId, remarks) => {
       throw new Error("Pending user not found or already processed");
     }
 
-
-
     await db.query(
       `INSERT INTO admin_user_action_logs (
          action,pending_user_id, performed_by,  status, remarks
        ) VALUES ($1, $2, $3, $4, $5)`,
-      ["reject",id, rejecterId, "success", remarks]
+      ["reject", id, rejecterId, "success", remarks]
     );
 
     await db.query("COMMIT");
@@ -188,9 +186,47 @@ const rejectPendingUser = async (id, rejecterId, remarks) => {
   }
 };
 
+const updateRejectedPendingUser = async (id, updatedData) => {
+  const {
+    name,
+    email,
+    phone,
+    role,
+    password,
+    created_by,
+    action,
+    role_id,
+    username,
+  } = updatedData;
+
+  const query = `
+  UPDATE admin_users_pending
+  SET 
+    name = $1,
+    email = $2,
+    phone = $3,
+    role = $4,
+    password = $5,
+    role_id = $6,
+    username = $7,
+    updated_at = CURRENT_TIMESTAMP,
+    status = 'pending',
+    remarks = NULL,
+    checked_by = NULL,
+    checked_at = NULL
+  WHERE id = $8 AND status = 'rejected'
+  RETURNING *;
+`;
+
+  const values = [name, email, phone, role, password, role_id, username, id];
+
+  const result = await db.query(query, values);
+  return result.rows[0];
+};
 module.exports = {
   insert,
   findAllPending,
   approvePendingUser,
   rejectPendingUser,
+  updateRejectedPendingUser
 };
