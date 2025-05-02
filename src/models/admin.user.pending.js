@@ -87,4 +87,110 @@ const findAllPending = async ({ page, limit, search }) => {
   };
 };
 
-module.exports = { insert, findAllPending };
+const approvePendingUser = async (id, approverId) => {
+  try {
+    const result = await db.query("BEGIN");
+
+    const pendingResult = await db.query(
+      "SELECT * FROM admin_users_pending WHERE id = $1 AND status = $2",
+      [id, "pending"]
+    );
+
+    const pendingUser = pendingResult.rows[0];
+
+    if (!pendingUser) {
+      await db.query("ROLLBACK");
+      throw new Error("Pending User not found or already processed");
+    }
+
+    const insertResult = await db.query(
+      `INSERT INTO admin_users (
+        id, name, email, phone, role, password_hash, role_id,
+        created_by, created_at, username, is_active
+      ) VALUES (
+        gen_random_uuid(), $1, $2, $3, $4, $5, $6,
+        $7, $8, $9, true
+      ) RETURNING *`,
+      [
+        pendingUser.name,
+        pendingUser.email,
+        pendingUser.phone,
+        pendingUser.role,
+        pendingUser.password,
+        pendingUser.role_id,
+        pendingUser.created_by,
+        pendingUser.created_at,
+        pendingUser.username,
+      ]
+    );
+    const approvedUser = insertResult.rows[0];
+
+    await db.query(
+      `INSERT INTO admin_user_action_logs (
+    action, performed_by, target_user_id, status, remarks
+  ) VALUES ($1, $2, $3, $4, $5)`,
+      ["approve", approverId, approvedUser.id, "success", null]
+    );
+
+    await db.query(`DELETE FROM admin_users_pending WHERE id = $1`, [
+      pendingUser.id,
+    ]);
+
+    await db.query("COMMIT");
+    return {
+      approvedUser,
+      deletedPendingUser: pendingUser,
+    };
+  } catch (err) {
+    await db.query("ROLLBACK");
+    throw err;
+  }
+};
+
+const rejectPendingUser = async (id, rejecterId, remarks) => {
+  console.log(id, rejecterId, remarks);
+  try {
+    await db.query("BEGIN");
+
+    const result = await db.query(
+      ` UPDATE admin_users_pending
+       SET status = $1,
+           rejected_at = NOW(),
+           checked_by = $2,
+           checked_at = NOW(),
+           remarks = $3
+       WHERE id = $4 AND status = 'pending'
+       RETURNING *`,
+      ["rejected", rejecterId, remarks, id]
+    );
+
+    const rejectedUser = result.rows[0];
+
+    if (!rejectedUser) {
+      throw new Error("Pending user not found or already processed");
+    }
+
+
+
+    await db.query(
+      `INSERT INTO admin_user_action_logs (
+         action,pending_user_id, performed_by,  status, remarks
+       ) VALUES ($1, $2, $3, $4, $5)`,
+      ["reject",id, rejecterId, "success", remarks]
+    );
+
+    await db.query("COMMIT");
+
+    return rejectedUser;
+  } catch (err) {
+    await db.query("ROLLBACK");
+    throw err;
+  }
+};
+
+module.exports = {
+  insert,
+  findAllPending,
+  approvePendingUser,
+  rejectPendingUser,
+};

@@ -1,6 +1,8 @@
 const {
   createPendingAdminUser,
   getPendingAdminUsers,
+  approvePendingAdminUser,
+  rejectPendingAdminUser,
 } = require("../services/admin.user.service");
 const {
   errorResponse,
@@ -50,17 +52,17 @@ const createAdminUserRequest = async (req, res) => {
   }
 };
 
-const getAllPendingAdminUsers = async (req, res ) => {
-
+const getAllPendingAdminUsers = async (req, res) => {
   try {
-
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const search = req.query.search || "";
 
     console.log(page, limit, search);
     const result = await getPendingAdminUsers({
-      page, limit, search
+      page,
+      limit,
+      search,
     });
 
     return successResponse(res, {
@@ -84,4 +86,50 @@ const getAllPendingAdminUsers = async (req, res ) => {
   }
 };
 
-module.exports = { createAdminUserRequest, getAllPendingAdminUsers };
+const approveAdminUser = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await approvePendingAdminUser(id, req.user.id);
+    return successResponse(res, {
+      status: true,
+      message: "Approval Success",
+      data: result,
+      statusCode: 200,
+    });
+  } catch (error) {
+    return errorResponse(res, {
+      status: false,
+      message: "Approval Failed: " + error.message,
+      data: {},
+      statusCode: 500,
+    });
+  }
+};
+
+const rejectAdminUser = async (req, res) => {
+  const { id } = req.params;
+  const { remarks } = req.body;
+  try {
+    const result = await rejectPendingAdminUser(id, req.user.id, remarks);
+    return successResponse(res, {
+      status: true,
+      message: "Rejection Success",
+      data: result,
+      statusCode: 200,
+    });
+  } catch (error) {
+    return errorResponse(res, {
+      status: false,
+      message: "Rejection Failed: " + error.message,
+      data: {},
+      statusCode: 500,
+    });
+  }
+};
+
+module.exports = {
+  createAdminUserRequest,
+  getAllPendingAdminUsers,
+  approveAdminUser,
+  rejectAdminUser,
+};
