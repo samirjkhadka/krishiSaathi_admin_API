@@ -5,6 +5,7 @@ const {
   approvePendingUser,
   rejectPendingUser,
   updateRejectedPendingUser,
+  deleteRejectedPendinguser,
 } = require("../models/admin.user.pending");
 const logAction = require("../utils/maker_checker_logger");
 
@@ -19,9 +20,9 @@ const createPendingAdminUser = async (payload) => {
   return await insert(data);
 };
 
-const getPendingAdminUsers = async ({ page, limit, search }) => {
-  console.log(page, limit, search);
-  return await findAllPending({ page, limit, search });
+const getPendingAdminUsers = async ({ page, limit, search, status }) => {
+
+  return await findAllPending({ page, limit, search, status });
 };
 
 const approvePendingAdminUser = async (id, approverId) => {
@@ -50,10 +51,21 @@ const editAndResubmitPendingUser = async (id, updatedData) => {
   return updatedUser;
 };
 
+const deleteUser = async (id) => {
+  const deletedUser = await deleteRejectedPendinguser(id);
+  if (!deletedUser) {
+    throw new Error(
+      "Delete Failed. Ensure user is rejected and not already deleted."
+    );
+  }
+  return deletedUser;
+};
+
 module.exports = {
   createPendingAdminUser,
   getPendingAdminUsers,
   approvePendingAdminUser,
   rejectPendingAdminUser,
-  editAndResubmitPendingUser
+  editAndResubmitPendingUser,
+  deleteUser
 };

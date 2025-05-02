@@ -8,6 +8,7 @@ const {
   approveAdminUser,
   rejectAdminUser,
   handleEditResubmitPendingUser,
+  handleDeleteUser,
 } = require("../controllers/adminUser.controller");
 const router = express.Router();
 
@@ -20,5 +21,6 @@ router.put(
   authenticateJWT,
   handleEditResubmitPendingUser
 );
+router.delete("/delete-pending-user/:id", authenticateJWT, handleDeleteUser);
 
 module.exports = router;

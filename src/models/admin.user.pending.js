@@ -22,49 +22,53 @@ const insert = async (data) => {
   return response.rows[0];
 };
 
-const findAllPending = async ({ page, limit, search }) => {
+const findAllPending = async ({ page, limit, search, status }) => {
   const offset = (page - 1) * limit;
-  let query, countQuery, values, countValues;
+  const values = [];
+  const countValues = [];
+  const whereClauses = [`p.status != 'deleted'`]; // always exclude soft-deleted users
 
-  if (search) {
-    query = `
-      SELECT p.*, u.name AS created_by_name
-      FROM admin_users_pending p
-      LEFT JOIN admin_users u ON p.created_by = u.id
-      WHERE 
-        LOWER(p.name) LIKE $1 OR
-        LOWER(p.email) LIKE $1 OR
-        p.phone LIKE $1
-      ORDER BY p.created_at DESC
-      LIMIT $2 OFFSET $3
-    `;
-    values = [`%${search.toLowerCase()}%`, limit, offset];
-
-    countQuery = `
-      SELECT COUNT(*) AS total
-      FROM admin_users_pending
-      WHERE 
-        LOWER(name) LIKE $1 OR
-        LOWER(email) LIKE $1 OR
-        phone LIKE $1
-    `;
-    countValues = [`%${search.toLowerCase()}%`];
-  } else {
-    query = `
-      SELECT p.*, u.name AS created_by_name
-      FROM admin_users_pending p
-      LEFT JOIN admin_users u ON p.created_by = u.id
-      ORDER BY p.created_at DESC
-      LIMIT $1 OFFSET $2
-    `;
-    values = [limit, offset];
-
-    countQuery = `
-      SELECT COUNT(*) AS total
-      FROM admin_users_pending
-    `;
-    countValues = [];
+  // Apply status filter if provided
+  if (status && status.trim() !== "") {
+    values.push(status);
+    countValues.push(status);
+    whereClauses.push(`p.status = $${values.length}`);
   }
+
+  if (search && search.trim() !== "") {
+    const searchParam = `%${search.toLowerCase()}%`;
+    values.push(searchParam, searchParam, searchParam);
+    countValues.push(searchParam, searchParam, searchParam);
+
+    whereClauses.push(`
+      (
+        LOWER(p.name) LIKE $${values.length - 2} OR
+        LOWER(p.email) LIKE $${values.length - 1} OR
+        p.phone LIKE $${values.length}
+      )
+    `);
+  }
+
+  const whereClause = whereClauses.length
+    ? `WHERE ${whereClauses.join(" AND ")}`
+    : "";
+
+  // Add LIMIT and OFFSET at the end
+  const query = `
+SELECT p.*, u.name AS created_by_name
+FROM admin_users_pending p
+LEFT JOIN admin_users u ON p.created_by = u.id
+${whereClause}
+ORDER BY p.created_at DESC
+LIMIT $${values.length + 1} OFFSET $${values.length + 2}
+`;
+  values.push(limit, offset); // LIMIT and OFFSET always come at the end
+
+  const countQuery = `
+SELECT COUNT(*) AS total
+FROM admin_users_pending p
+${whereClause}
+`;
 
   const [result, countResult] = await Promise.all([
     db.query(query, values),
@@ -223,10 +227,23 @@ const updateRejectedPendingUser = async (id, updatedData) => {
   const result = await db.query(query, values);
   return result.rows[0];
 };
+
+const deleteRejectedPendinguser = async (id) => {
+  const result = await db.query(
+    `UPDATE admin_users_pending
+    SET is_deleted = true,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = $1 AND status = 'rejected' AND is_deleted = false
+    RETURNING *`,
+    [id]
+  );
+  return result.rows[0];
+};
 module.exports = {
   insert,
   findAllPending,
   approvePendingUser,
   rejectPendingUser,
-  updateRejectedPendingUser
+  updateRejectedPendingUser,
+  deleteRejectedPendinguser,
 };

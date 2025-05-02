@@ -4,6 +4,7 @@ const {
   approvePendingAdminUser,
   rejectPendingAdminUser,
   editAndResubmitPendingUser,
+  deleteUser,
 } = require("../services/admin.user.service");
 const {
   errorResponse,
@@ -58,12 +59,13 @@ const getAllPendingAdminUsers = async (req, res) => {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const search = req.query.search || "";
+    const status = req.query.status || "";
 
-    console.log(page, limit, search);
     const result = await getPendingAdminUsers({
       page,
       limit,
       search,
+      status
     });
 
     return successResponse(res, {
@@ -149,10 +151,31 @@ const handleEditResubmitPendingUser = async (req, res) => {
   }
 };
 
+const handleDeleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await deleteUser(id);
+    return successResponse(res, {
+      status: true,
+      message: "Delete Success",
+      data: result,
+      statusCode: 200,
+    });
+  } catch (error) {
+    return errorResponse(res, {
+      status: false,
+      message: "Delete Failed: " + error.message,
+      data: {},
+      statusCode: 500,
+    });
+  }
+};
+
 module.exports = {
   createAdminUserRequest,
   getAllPendingAdminUsers,
   approveAdminUser,
   rejectAdminUser,
   handleEditResubmitPendingUser,
+  handleDeleteUser,
 };
