@@ -28,7 +28,13 @@ const login = async (username, password) => {
   }
 
   //if 2FA enabled, generate 2FA secret
-  const token = generateToken({ id: user.id, username: user.username });
+  const token = generateToken({
+    id: user.id,
+    username: user.username,
+    role: user.role,
+    role_id: user.role_id,
+    email: user.email,
+  });
 
   await saveAuditLog({
     userId: user.id,
