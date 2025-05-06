@@ -8,7 +8,6 @@ const getMasters = async (req, res) => {
   try {
     const type = req.params.type;
     const parentId = req.query.parent_id || null;
-    console.log(type, parentId);
     const result = await fetchMasterData(type, parentId);
 
 
