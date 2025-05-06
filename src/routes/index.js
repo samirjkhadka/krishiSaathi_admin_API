@@ -6,6 +6,7 @@ const adminUserRoutes = require("../routes/adminUser.routes");
 const roleRoutes = require("./roles.routes");
 const permissionRoutes = require("./permissions.routes");
 const rbacRoutes = require("./rbac.routes");
+const masterRoutes = require("./master.routes");
 
 router.use("/auth", authRoutes);
 router.use("/admin", adminUserRoutes);
@@ -13,5 +14,6 @@ router.use("/admin", adminUserRoutes);
 router.use("/roles", roleRoutes);
 router.use("/permissions", permissionRoutes);
 router.use("/rbac", rbacRoutes);
+router.use("/masters", masterRoutes);
 
 module.exports = router;

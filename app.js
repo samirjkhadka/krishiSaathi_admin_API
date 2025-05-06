@@ -5,14 +5,15 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const routes = require("./src/routes");
 const errorHandler = require("./src/middlewares/error.middleware");
+const applySecurityMiddlewares = require("./src/middlewares/security.middleware");
 dotenv.config();
 
 const app = express();
 
-app.use(cors());
 app.use(express.json());
-app.use(helmet());
+
 app.use(morgan("dev"));
+// applySecurityMiddlewares(app);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "🚀 Krishi Saathi Admin API is running!" });
