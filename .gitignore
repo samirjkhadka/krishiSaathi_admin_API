@@ -1,3 +1,6 @@
+#temporay image uploads
+src/uploads
+
 # Logs
 logs
 *.log
