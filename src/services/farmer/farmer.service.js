@@ -7,6 +7,7 @@ const {
   createFarmerQRCard,
 } = require("../../models/farmer/farmerQRCard.model");
 const uploadToCloudinary = require("../../utils/imageUploader");
+const generateAndUploadQRCode = require("../../utils/qrCodeGenerator");
 const { errorResponse } = require("../../utils/responseFormatter");
 
 const createFarmerWithKYC = async (
@@ -47,11 +48,20 @@ const createFarmerWithKYC = async (
 
     //create a QR Card for farmer
     const qrCode = `Farmer-${farmer.id}-${Date.now()}`;
+    const qrCardNumber = `QR${Date.now()}`;
+    
+    // Generate QR Code Image
+    const qrCodeImageUrl = await generateAndUploadQRCode(
+      JSON.stringify(farmer.id + "-" + qrCardNumber),
+      farmerData.id
+    );
+
     const cardData = {
       farmer_id: farmer.id,
-      qr_code: qrCode,
-      qr_card_number: `QR${Date.now()}`,
+      qr_code: qrCodeImageUrl,
+      qr_card_number: qrCardNumber,
     };
+
 
     const qrCard = await createFarmerQRCard(cardData);
 
