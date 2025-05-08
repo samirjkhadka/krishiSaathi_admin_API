@@ -46,20 +46,16 @@ const createFarmerWithKYC = async (
 
     const farmerKYC = await createFarmerKyc(kycData);
 
-    //create a QR Card for farmer
-    const qrCode = `Farmer-${farmer.id}-${Date.now()}`;
-    const qrCardNumber = `QR${Date.now()}`;
     
     // Generate QR Code Image
-    const qrCodeImageUrl = await generateAndUploadQRCode(
-      JSON.stringify(farmer.id + "-" + qrCardNumber),
-      farmerData.id
+    const qrCodeData = await generateAndUploadQRCode(
+     farmerData
     );
 
     const cardData = {
       farmer_id: farmer.id,
-      qr_code: qrCodeImageUrl,
-      qr_card_number: qrCardNumber,
+      qr_code: qrCodeData.qrImageUrl,
+      qr_card_number: qrCodeData.qrCardNumber,
     };
 
 
