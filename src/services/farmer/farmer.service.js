@@ -52,10 +52,14 @@ const createFarmerWithKYC = async (
      farmerData
     );
 
+    const validTill = new Date();
+    validTill.setFullYear(validTill.getFullYear() + 4);
+
     const cardData = {
       farmer_id: farmer.id,
       qr_code: qrCodeData.qrImageUrl,
       qr_card_number: qrCodeData.qrCardNumber,
+      valid_till: validTill,
     };
 
 
