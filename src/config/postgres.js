@@ -11,10 +11,10 @@ const pool = new Pool({
 
 pool.connect((err, client, release) => {
   if (err) {
-    console.error('Error connecting to the database PostgreSQL (Neon): ', err);
+    console.error('❌ Error connecting to the database PostgreSQL (Neon): ', err);
     return;
   }
-  console.log('Successfully connected to the database PostgreSQL (Neon)');
+  console.log('✅ Successfully connected to the database PostgreSQL (Neon)');
   release();
 });
 

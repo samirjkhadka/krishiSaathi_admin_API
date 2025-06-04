@@ -8,6 +8,7 @@ const permissionRoutes = require("./permissions.routes");
 const rbacRoutes = require("./rbac.routes");
 const masterRoutes = require("./master.routes");
 const farmerRoutes = require("./farmer.routes");
+const expenseRoutes = require("./expenses.routes");
 
 router.use("/auth", authRoutes);
 router.use("/admin", adminUserRoutes);
@@ -17,5 +18,6 @@ router.use("/permissions", permissionRoutes);
 router.use("/rbac", rbacRoutes);
 router.use("/masters", masterRoutes);
 router.use("/farmers", farmerRoutes);
+router.use("/expenses", expenseRoutes);
 
 module.exports = router;

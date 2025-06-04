@@ -16,7 +16,7 @@ app.use(morgan("dev"));
 // applySecurityMiddlewares(app);
 
 app.get("/", (req, res) => {
-  res.status(200).json({ message: "🚀 Krishi Saathi Admin API is running!" });
+  res.status(200).json({ message: "🚀 Samir J Khadka Everything API is running!" });
 });
 
 app.use("/api/v1", routes);
