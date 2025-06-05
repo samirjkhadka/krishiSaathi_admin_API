@@ -1,5 +1,15 @@
-const { createExpenseService } = require("../../services/expenses/expenses.service");
-const { errorResponse, successResponse } = require("../../utils/responseFormatter");
+const {
+  createExpenseService,
+  getAllExpenseService,
+  getExpensesByIdService,
+  getExpensesByUserIdService,
+  deleteExpenseService,
+  getExpensesSummaryService,
+} = require("../../services/expenses/expenses.service");
+const {
+  errorResponse,
+  successResponse,
+} = require("../../utils/responseFormatter");
 
 const createExpense = async (req, res) => {
   if (!req.body) {
@@ -40,4 +50,113 @@ const createExpense = async (req, res) => {
   }
 };
 
-module.exports = { createExpense };
+const getAllExpenses = async (req, res) => {
+  try {
+    const result = await getAllExpenseService(req.body, req.user.id);
+    return successResponse(res, {
+      status: true,
+      message: "Expense Transaction Fetched Successfully",
+      data: result,
+      statusCode: 200,
+    });
+  } catch (error) {
+    return errorResponse(res, {
+      status: false,
+      message: "Expense Transaction Fetched Failed: " + error.message,
+      data: {},
+      statusCode: 500,
+    });
+  }
+};
+
+const getExpensesById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await getExpensesByIdService(id);
+    return successResponse(res, {
+      status: true,
+      message: "Expense Transaction Fetched Successfully",
+      data: result,
+      statusCode: 200,
+    });
+  } catch (error) {
+    return errorResponse(res, {
+      status: false,
+      message: "Expense Transaction Fetched Failed: " + error.message,
+      data: {},
+      statusCode: 500,
+    });
+  }
+};
+
+const getExpensesByUserId = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const result = await getExpensesByUserIdService(userId);
+    return successResponse(res, {
+      status: true,
+      message: "Expense Transaction Fetched Successfully",
+      data: result,
+      statusCode: 200,
+    });
+  } catch (error) {
+    return errorResponse(res, {
+      status: false,
+      message: "Expense Transaction Fetched Failed: " + error.message,
+      data: {},
+      statusCode: 500,
+    });
+  }
+};
+
+const deleteExpense = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await deleteExpenseService(id);
+    return successResponse(res, {
+      status: true,
+      message: "Expense Transaction Deleted Successfully",
+      data: result,
+      statusCode: 200,
+    });
+  } catch (error) {
+    return errorResponse(res, {
+      status: false,
+      message: "Expense Transaction Deletion Failed: " + error.message,
+      data: {},
+      statusCode: 500,
+    });
+  }
+};
+
+const getExpensesSummary = async (req, res) => {
+  try {
+    const result = await getExpensesSummaryService(req.user.id);
+    console.log(result);
+    return successResponse(res, {
+      status: true,
+      message: "Expense Summary Fetched Successfully",
+      data: result,
+      statusCode: 200,
+    });
+  } catch (error) {
+    return errorResponse(res, {
+      status: false,
+      message: "Expense Summary Fetched Failed: " + error.message,
+      data: {},
+      statusCode: 500,
+    });
+  }
+};
+
+module.exports = {
+  createExpense,
+  getAllExpenses,
+  getExpensesById,
+  getExpensesByUserId,
+  deleteExpense,
+  getExpensesSummary,
+};
