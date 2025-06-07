@@ -28,7 +28,7 @@ const getExpensesById = async (id) => {
 };
 
 const getExpensesByUserId = async (userId) => {
-  const user_id = "9457e173-516a-4dd2-b56e-4ec9e5642843";
+  const user_id = userId;
   const response = await pool.query(
     `SELECT * FROM exp_transactions WHERE user_id = $1`,
     [user_id]
