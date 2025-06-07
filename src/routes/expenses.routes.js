@@ -11,15 +11,15 @@ const {
   getExpensesSummary,
 } = require("../controllers/expenses/expenses.controller");
 
-router.post("/createTransaction", authenticateJWT, createExpense);
-router.get("/getAllExpenses", authenticateJWT, getAllExpenses);
-router.get("/getExpensesById/:id", authenticateJWT, getExpensesById);
+router.post("/createTransaction", createExpense);
+router.get("/getAllExpenses", getAllExpenses);
+router.get("/getExpensesById/:id", getExpensesById);
 router.get(
   "/getExpensesByUserId/:userId",
-  authenticateJWT,
+
   getExpensesByUserId
 );
-router.delete("/deleteExpense/:id", authenticateJWT, deleteExpense);
-router.get("/getExpensesSummary/:userId", authenticateJWT, getExpensesSummary);
+router.delete("/deleteExpense/:id", deleteExpense);
+router.get("/getExpensesSummary/:userId", getExpensesSummary);
 
 module.exports = router;
