@@ -32,7 +32,7 @@ const createExpense = async (req, res) => {
   }
 
   try {
-    const result = await createExpenseService(req.body, req.user.id);
+    const result = await createExpenseService(req.body, userId);
 
     return successResponse(res, {
       status: true,
