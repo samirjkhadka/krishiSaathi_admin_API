@@ -133,9 +133,12 @@ const deleteExpense = async (req, res) => {
 };
 
 const getExpensesSummary = async (req, res) => {
+   const { userId } = req.params;
   try {
-    const result = await getExpensesSummaryService(req.user.id);
-    console.log(result);
+
+
+    const result = await getExpensesSummaryService(userId);
+
     return successResponse(res, {
       status: true,
       message: "Expense Summary Fetched Successfully",
